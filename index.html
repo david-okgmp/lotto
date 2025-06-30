@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중복 없는 랜덤 숫자 생성기</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    label, select, button { font-size: 1.2em; margin: 10px 0; }
+    #resultTable { margin-top: 20px; border-collapse: collapse; width: 100%; }
+    #resultTable th, #resultTable td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    #resultTable th { background-color: #f0f0f0; }
+    #controls { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>중복 없는 랜덤 숫자 6개 생성기 (10회)</h1>
+
+  <label for="range">선택된 주요 숫자 범위:</label>
+  <select id="range">
+    <option value="1-10">1 ~ 10</option>
+    <option value="11-20">11 ~ 20</option>
+    <option value="21-30">21 ~ 30</option>
+    <option value="31-40">31 ~ 40</option>
+  </select>
+
+  <div id="controls">
+    <button onclick="generateNumbers()">랜덤 숫자 10세트 생성</button>
+    <button onclick="copyResults()">결과 복사</button>
+    <button onclick="sortResults()">각 회차 숫자 정렬</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    function getRandomElement(arr, used) {
+      const filtered = arr.filter(x => !used.has(x));
+      if (filtered.length === 0) return null;
+      const index = Math.floor(Math.random() * filtered.length);
+      const value = filtered[index];
+      used.add(value);
+      return value;
+    }
+
+    function generateNumbers() {
+      const rangeStr = document.getElementById("range").value;
+      const [min, max] = rangeStr.split("-").map(Number);
+      const selectedRange = Array.from({ length: max - min + 1 }, (_, i) => i + min);
+
+      const allRanges = [
+        { name: "1-10", values: Array.from({ length: 10 }, (_, i) => i + 1) },
+        { name: "11-20", values: Array.from({ length: 10 }, (_, i) => i + 11) },
+        { name: "21-30", values: Array.from({ length: 10 }, (_, i) => i + 21) },
+        { name: "31-40", values: Array.from({ length: 10 }, (_, i) => i + 31) },
+        { name: "41-45", values: Array.from({ length: 5 }, (_, i) => i + 41) }
+      ];
+
+      const chosenRangeName = `${min}-${max}`;
+      const userRange = allRanges.find(r => r.name === chosenRangeName);
+      const others = allRanges.filter(r => r.name !== chosenRangeName);
+
+      const d = others.find(r => r.name === "41-45");
+      const abc = others.filter(r => r.name !== "41-45");
+      const [a, b, c] = abc;
+
+      const comboInstructions = [
+        [a, b, d], [a, c, d], [b, c, d], [a, b, c],
+        [a, b, b], [a, a, b], [a, c, c], [a, a, c], [b, c, c], [b, b, c]
+      ];
+
+      const output = [];
+      for (let round = 0; round < 10; round++) {
+        const usedNumbers = new Set();
+        let selectedNums = [...userRange.values];
+        const selectedNumbers = [];
+
+        for (let i = 0; i < 3; i++) {
+          const val = getRandomElement(selectedNums, usedNumbers);
+          if (val !== null) selectedNumbers.push(val);
+        }
+
+        const combo = comboInstructions[round];
+        const otherNumbers = [];
+        for (const range of combo) {
+          const val = getRandomElement(range.values, usedNumbers);
+          if (val !== null) otherNumbers.push(val);
+        }
+
+        const totalResult = selectedNumbers.concat(otherNumbers);
+        output.push({ round: round + 1, numbers: totalResult });
+      }
+
+      window.generatedResults = output;
+      displayResults(output);
+    }
+
+    function displayResults(results) {
+      let html = '<table id="resultTable">';
+      html += '<tr><th>회차</th><th colspan="6">번호</th></tr>';
+      results.forEach(item => {
+        html += `<tr><td>${item.round}</td>` + item.numbers.map(n => `<td>${n}</td>`).join('') + '</tr>';
+      });
+      html += '</table>';
+      document.getElementById("result").innerHTML = html;
+    }
+
+    function copyResults() {
+      const text = window.generatedResults.map(item => `${item.round}회차: ${item.numbers.join(", ")}`).join("\n");
+      navigator.clipboard.writeText(text).then(() => alert("결과가 클립보드에 복사되었습니다."));
+    }
+
+    function sortResults() {
+      if (!window.generatedResults) return;
+      const sorted = window.generatedResults.map(item => ({
+        round: item.round,
+        numbers: [...item.numbers].sort((a, b) => a - b)
+      }));
+      displayResults(sorted);
+    }
+  </script>
+</body>
+</html>
