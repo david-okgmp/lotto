@@ -144,12 +144,12 @@
       document.getElementById("result").innerHTML = "";
     }
 
-    'window.onload = function() {
-     ' let count = localStorage.getItem("visitCount") || 0;
-      'count++;
-      'localStorage.setItem("visitCount", count);
-      'document.getElementById("visitorCount").innerText = `📈 누적 방문 횟수: ${count}회`;
-    '};
+    window.onload = function() {
+      let count = localStorage.getItem("visitCount") || 0;
+      count++;
+      localStorage.setItem("visitCount", count);
+      document.getElementById("visitorCount").innerText = `📈 누적 방문 횟수: ${count}회`;
+    };
   </script>
 <!-- 방문자 수 카운터 (Counter.dev) -->
 <script src="https://cdn.counter.dev/script.js"
